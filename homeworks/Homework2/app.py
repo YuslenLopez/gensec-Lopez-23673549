@@ -11,9 +11,11 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 from flask import Flask, render_template_string, request
+from dotenv import load_dotenv
 
 
 APP_DIR = Path(__file__).resolve().parent
+load_dotenv(APP_DIR / ".env")
 DEFAULT_DOCUMENT_DIR = APP_DIR / "07_RAG" / "rag_data"
 DEFAULT_CHAT_MODEL = os.getenv("GEMINI_CHAT_MODEL", "gemini-3.8-flash")
 DEFAULT_EMBED_MODEL = os.getenv("GEMINI_EMBED_MODEL", "gemini-embedding-2")

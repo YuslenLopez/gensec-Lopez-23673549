@@ -33,7 +33,19 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
-Set your API key in that PowerShell window. Replace the placeholder with your own key; never commit or share it:
+Create a local file named `.env` beside `app.py` with these entries:
+
+```dotenv
+GEMINI_API_KEY=your_new_api_key
+GEMINI_CHAT_MODEL=gemini-3.8-flash
+GEMINI_EMBED_MODEL=gemini-embedding-2
+```
+
+Replace the API key placeholder with your key. The app reads this file when it starts. Never commit or share the key. The repository's root `.gitignore` already ignores `.env`; you can verify it with `git check-ignore -v homeworks/Homework2/.env`.
+
+Before staging changes, add any other secrets or machine-local files you do not want to share (such as local credentials, caches, or generated databases) to the repository's root `.gitignore` as well.
+
+Alternatively, you can set the key in PowerShell before starting the app:
 
 ```powershell
 $env:GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
