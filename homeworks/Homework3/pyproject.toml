@@ -1,7 +1,7 @@
 [project]
-name = "suspicious-message-coach"
+name = "scamcat"
 version = "0.1.0"
-description = "A local LangChain agent that explains possible warning signs in messages."
+description = "ScamCat: a local LangChain agent for assessing suspicious messages."
 requires-python = ">=3.10"
 dependencies = [
     "langchain>=1.0,<2.0",
