@@ -25,6 +25,7 @@ uv run pytest
 ```
 
 You can also pass a message as a quoted command-line argument: `uv run python app.py "Your account needs verification"`.
+The app stays open for follow-up questions; type `quit` or `exit` to end the conversation.
 
 ## Safety notes
 
