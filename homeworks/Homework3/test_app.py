@@ -1,6 +1,6 @@
 """Tests for deterministic message inspection behavior."""
 
-from app import analyze_message
+from app import analyze_message, format_text_content
 
 
 def test_analyze_message_flags_basic_url_clues() -> None:
@@ -20,3 +20,16 @@ def test_analyze_message_handles_text_without_links() -> None:
 
 	assert result["links"] == []
 	assert result["signals"] == []
+
+
+def test_format_text_content_omits_provider_metadata() -> None:
+	"""Keep text blocks but omit signature metadata from model content."""
+	result = format_text_content(
+		[
+			{"type": "text", "text": "This is likely a scam."},
+			{"extras": {"signature": "hidden metadata"}},
+		]
+	)
+
+	assert result == "This is likely a scam."
+	assert "signature" not in result

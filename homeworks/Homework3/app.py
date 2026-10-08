@@ -113,6 +113,40 @@ def create_message_agent():
 	)
 
 
+def format_text_content(content: object) -> str:
+	"""Extract displayable text blocks and omit non-text provider metadata."""
+	if isinstance(content, str):
+		return content.strip()
+	if isinstance(content, list):
+		text_parts = []
+		for block in content:
+			if isinstance(block, str):
+				text_parts.append(block.strip())
+			elif isinstance(block, dict) and block.get("type") == "text":
+				text = block.get("text")
+				if isinstance(text, str) and text.strip():
+					text_parts.append(text.strip())
+		return "\n\n".join(text_parts)
+	return ""
+
+
+def format_inspection_context(messages: list[object]) -> list[str]:
+	"""Format this turn's inspect_message tool results for terminal display."""
+	context = []
+	for message in messages:
+		if getattr(message, "name", None) != "inspect_message":
+			continue
+		text = format_text_content(getattr(message, "content", ""))
+		if not text:
+			continue
+		try:
+			text = json.dumps(json.loads(text), indent=2)
+		except json.JSONDecodeError:
+			pass
+		context.append(text)
+	return context
+
+
 def main() -> int:
 	"""Run an interactive conversation with the message-safety agent."""
 	load_dotenv()
@@ -144,6 +178,7 @@ def main() -> int:
 			print("Goodbye.")
 			break
 
+		previous_message_count = len(conversation)
 		try:
 			result = agent.invoke({"messages": conversation + [("user", message)]})
 		except Exception as error:
@@ -151,7 +186,21 @@ def main() -> int:
 			continue
 
 		conversation = result["messages"]
-		print(result["messages"][-1].content)
+		turn_messages = conversation[previous_message_count:]
+		inspection_context = format_inspection_context(turn_messages)
+		response = format_text_content(conversation[-1].content)
+
+		print("\n" + "=" * 64)
+		print("YOUR MESSAGE")
+		print(message)
+		print("\nINSPECTION CONTEXT")
+		if inspection_context:
+			print("\n\n".join(inspection_context))
+		else:
+			print("No new inspection tool findings for this follow-up.")
+		print("\nSAFETY COACH")
+		print(response or "No readable text response was returned.")
+		print("=" * 64 + "\n")
 
 	return 0
 
