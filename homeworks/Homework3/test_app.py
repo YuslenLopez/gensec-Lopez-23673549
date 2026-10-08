@@ -1,6 +1,9 @@
 """Tests for deterministic message inspection behavior."""
 
-from app import analyze_message, format_text_content
+from types import SimpleNamespace
+
+from app import analyze_message, format_text_content, format_tool_call_details
+from app import get_used_tool_names
 
 
 def test_analyze_message_flags_basic_url_clues() -> None:
@@ -33,3 +36,34 @@ def test_format_text_content_omits_provider_metadata() -> None:
 
 	assert result == "This is likely a scam."
 	assert "signature" not in result
+
+
+def test_get_used_tool_names_returns_tools_called_this_turn() -> None:
+	"""List called tools once, including names from tool-call messages."""
+	messages = [
+		SimpleNamespace(
+			name=None,
+			tool_calls=[{"name": "inspect_message"}, {"name": "python_repl"}],
+		),
+		SimpleNamespace(name="inspect_message", tool_calls=[]),
+	]
+
+	assert get_used_tool_names(messages) == ["inspect_message", "python_repl"]
+
+
+def test_format_tool_call_details_shows_tool_inputs() -> None:
+	"""Display a tool's name and its arguments in a readable line."""
+	messages = [
+		SimpleNamespace(
+			tool_calls=[
+				{
+					"name": "inspect_message",
+					"args": {"message": "Urgent: click http://bit.ly/claim"},
+				}
+			]
+		)
+	]
+
+	assert format_tool_call_details(messages) == [
+		'inspect_message input: {"message": "Urgent: click http://bit.ly/claim"}'
+	]

@@ -147,6 +147,41 @@ def format_inspection_context(messages: list[object]) -> list[str]:
 	return context
 
 
+def get_used_tool_names(messages: list[object]) -> list[str]:
+	"""Return unique tool names actually called during the current turn."""
+	tool_names = []
+	for message in messages:
+		name = getattr(message, "name", None)
+		if name and name not in tool_names:
+			tool_names.append(name)
+		for tool_call in getattr(message, "tool_calls", []):
+			if isinstance(tool_call, dict):
+				call_name = tool_call.get("name")
+			else:
+				call_name = getattr(tool_call, "name", None)
+			if call_name and call_name not in tool_names:
+				tool_names.append(call_name)
+	return tool_names
+
+
+def format_tool_call_details(messages: list[object]) -> list[str]:
+	"""Format tool names and input arguments, shortening unusually long inputs."""
+	details = []
+	for message in messages:
+		for tool_call in getattr(message, "tool_calls", []):
+			if isinstance(tool_call, dict):
+				name = tool_call.get("name", "unknown tool")
+				arguments = tool_call.get("args", {})
+			else:
+				name = getattr(tool_call, "name", "unknown tool")
+				arguments = getattr(tool_call, "args", {})
+			formatted_arguments = json.dumps(arguments, ensure_ascii=False)
+			if len(formatted_arguments) > 500:
+				formatted_arguments = formatted_arguments[:497] + "..."
+			details.append(f"{name} input: {formatted_arguments}")
+	return details
+
+
 def main() -> int:
 	"""Run an interactive conversation with the message-safety agent."""
 	load_dotenv()
@@ -188,6 +223,8 @@ def main() -> int:
 		conversation = result["messages"]
 		turn_messages = conversation[previous_message_count:]
 		inspection_context = format_inspection_context(turn_messages)
+		used_tools = get_used_tool_names(turn_messages)
+		tool_call_details = format_tool_call_details(turn_messages)
 		response = format_text_content(conversation[-1].content)
 
 		print("\n" + "=" * 64)
@@ -198,6 +235,13 @@ def main() -> int:
 			print("\n\n".join(inspection_context))
 		else:
 			print("No new inspection tool findings for this follow-up.")
+		print("\nTOOL CALL DETAILS")
+		if tool_call_details:
+			print("\n".join(tool_call_details))
+		elif used_tools:
+			print(", ".join(used_tools))
+		else:
+			print("None")
 		print("\nSAFETY COACH")
 		print(response or "No readable text response was returned.")
 		print("=" * 64 + "\n")
