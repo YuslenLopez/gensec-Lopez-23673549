@@ -1,0 +1,17 @@
+[project]
+name = "suspicious-message-coach"
+version = "0.1.0"
+description = "A local LangChain agent that explains possible warning signs in messages."
+requires-python = ">=3.10"
+dependencies = [
+    "langchain>=1.0,<2.0",
+    "langchain-experimental>=0.3,<1.0",
+    "langchain-google-genai>=2.0,<5.0",
+    "python-dotenv>=1.0,<2.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0,<9.0"]
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py"]
