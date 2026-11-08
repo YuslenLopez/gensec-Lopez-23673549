@@ -59,3 +59,5 @@ Deliverables
 ----------------------------------------------------------------------------------------------------------------
 4.what are some options for sample pcaps i can feed to the application ?
 ----------------------------------------------------------------------------------------------------------------
+5.okay so I tried testing the application with a small files size of around 34 kb and it works but when I uses a larger file of 10 million kb it just stayed infinity loading. Shouldn't it just display that the uploaded file was too large ?
+----------------------------------------------------------------------------------------------------------------
