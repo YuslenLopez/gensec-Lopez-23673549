@@ -110,8 +110,10 @@ def test_bad_files_empty_and_csrf(client):
 
 
 def test_oversized_upload_and_expiration(client):
-    response = upload_capture(client, b'x' * (16 * 1024 * 1024 + 1))
-    assert b'exceeds the 16 MB limit' in response.data
+    response = upload_capture(client, b'x' * (32 * 1024 * 1024 + 1))
+    assert b'Invalid or truncated PCAP header' in response.data
+    response = upload_capture(client, b'x' * (64 * 1024 * 1024 + 1))
+    assert b'exceeds the 64 MiB request limit' in response.data
     upload_capture(client, capture_bytes())
     assert len(analyses) == 1
     next(iter(analyses.values()))['updated'] = time.monotonic() - RETENTION_SECONDS - 1

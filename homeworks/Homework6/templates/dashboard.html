@@ -17,9 +17,10 @@
 <main class="workspace">
   <div class="page-heading"><div><div class="eyebrow"><span>WORKSPACE</span> / ANALYSIS</div><h1>Traffic overview</h1><p>Inspect capture metadata and explore network activity.</p></div><div class="privacy-label"><span class="privacy-icon">&#9672;</span> Metadata only</div></div>
   {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="notice {{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}
+  <div id="upload-error" class="notice error" role="alert" hidden></div>
   <section class="upload-strip" aria-label="Capture file">
-    <div class="upload-symbol" aria-hidden="true">&#8593;</div><div class="upload-copy"><strong>{{ analysis.filename if analysis else 'Start with a capture file' }}</strong><span>{{ 'Capture loaded and ready to explore' if analysis else 'PCAP or PCAPNG  /  Maximum 16 MB' }}</span></div>
-    <form class="upload-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+    <div class="upload-symbol" aria-hidden="true">&#8593;</div><div class="upload-copy"><strong>{{ analysis.filename if analysis else 'Start with a capture file' }}</strong><span>{{ 'Capture loaded and ready to explore' if analysis else 'PCAP or PCAPNG  /  Request limit 64 MiB' }}</span></div>
+    <form class="upload-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" data-max-request-size="{{ config.MAX_CONTENT_LENGTH }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label class="file-label" for="capture">Choose file</label><input id="capture" name="capture" type="file" accept=".pcap,.pcapng" required><span id="file-name" class="file-name">No file selected</span><button class="button primary" type="submit">Analyze capture <span aria-hidden="true">&#8599;</span></button>
     </form>
     {% if analysis %}<form action="{{ url_for('clear') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button" type="submit" title="Clear analysis" aria-label="Clear analysis">&#10005;</button></form>{% endif %}

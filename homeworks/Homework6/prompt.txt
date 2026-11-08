@@ -1,1 +1,61 @@
-This file is to hold all the prompts used to create the application.
+This file is to hold all the User prompts used to create the application.
+
+
+
+1. Would it be possible to make a - A network traffic analyzer and visualizer in a website style format that is coded in python using flask ? and if so how difficult would it be ?
+----------------------------------------------------------------------------------------------------------------
+
+2.Okay would you be able to provide me a good prompt to use to have a model like claude SI design a website that is easy to use but offers upload of network files / logs and gets the user some options to filter for IP, time captured and any other important key features available in a network logs that you deem useful. The application should be made in python and the website hosted via flask. Add any other features your think would prove useful to the prompts but try to keep the system as a whole to a medium level of complexity. Also focus on making the website visually appealing and stirght forward to use for users. 
+----------------------------------------------------------------------------------------------------------------
+
+3.Build a medium-complexity network traffic analysis web application in Python using Flask. The app should let a user upload a network capture file or supported network log, explore its metadata, and filter and visualize the results through a clear, polished interface.
+
+Purpose and boundaries
+- This is an offline analysis tool for files the user is authorized to inspect.
+- Do not add live packet capture, network scanning, exploit detection, or actions against other systems.
+- Focus on packet and flow metadata. Do not display or extract application payload contents, credentials, or personal data.
+- Treat uploaded files as untrusted input. Never execute uploaded content.
+
+Core user workflow
+1. The user opens a dashboard and uploads a supported `.pcap` or `.pcapng` file. If you add text-log support, document exactly which format is accepted.
+2. The app validates the file, analyzes it, and shows a summary.
+3. The user filters and explores the results.
+4. The user can clear the current analysis and upload another file.
+
+Dashboard and analysis features
+- Show a concise summary: capture time range, packet count, total bytes, protocol distribution, and number of unique source and destination IP addresses.
+- Include charts for traffic volume over time and protocol distribution.
+- Provide a searchable, paginated packet or flow table. Show useful metadata such as timestamp, source IP and port, destination IP and port, protocol, packet length, and direction when it can be determined.
+- Add filters for source IP, destination IP, either IP, protocol, source/destination port, and start/end time. Include a clear-filters control and a visible indication of active filters.
+- Support sorting the table by timestamp, IP address, protocol, or packet length.
+- Handle empty captures, unsupported files, malformed files, and filters with no matching results gracefully.
+- Include a short explanation of what each summary or chart represents, without overwhelming the interface.
+
+Visual design and usability
+- Create a professional, straightforward analyst workspace rather than a marketing landing page.
+- Use a compact navigation/header, a prominent upload area, clear summary metrics, and an organized analysis view.
+- Make the most common actions easy to find. Use readable labels, sensible defaults, helpful empty states, and clear success/error messages.
+- Use a restrained, high-contrast color palette and consistent typography. Charts and tables should remain legible on desktop and mobile.
+- Avoid displaying huge datasets all at once; use server-side pagination or another simple approach appropriate to the project’s size.
+
+Implementation
+- Use Flask for the web server and Jinja templates for pages.
+- Keep parsing and analysis logic separate from Flask route handlers.
+- Use a suitable Python library for offline capture-file parsing, and a lightweight charting library for visualizations.
+- Provide a requirements file and clear setup/run instructions.
+- Store uploaded files only as long as needed for analysis; use safe temporary storage and clean up files when the session is cleared or expires.
+- Add upload size limits, extension and content validation, safe filenames, error handling, and CSRF protection for forms.
+- Do not expose server file paths or stack traces to users.
+- Keep the code organized but avoid unnecessary layers or infrastructure. Do not add a database unless it is genuinely needed.
+- Include focused tests for file validation, parsing summaries, filtering, and error cases.
+- Include a few small sample or synthetic test fixtures if useful, but do not include sensitive real-world captures.
+
+Deliverables
+- Implement the working application in the current project directory.
+- Show the final project structure.
+- Provide exact commands to install dependencies, run the app, and run tests.
+- Briefly explain the supported input formats, known limitations, and how uploaded data is handled.
+- Before finishing, run the tests and fix issues caused by the implementation.
+----------------------------------------------------------------------------------------------------------------
+4.what are some options for sample pcaps i can feed to the application ?
+----------------------------------------------------------------------------------------------------------------

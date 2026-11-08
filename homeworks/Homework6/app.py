@@ -19,7 +19,7 @@ from capture_analysis import CaptureError, filter_packets, ip_sort_key, parse_ca
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY') or secrets.token_hex(32),
-    MAX_CONTENT_LENGTH=16 * 1024 * 1024,
+    MAX_CONTENT_LENGTH=64 * 1024 * 1024,
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Strict',
 )
@@ -192,7 +192,7 @@ def clear():
 
 @app.errorhandler(413)
 def too_large(error):
-    flash('The upload exceeds the 16 MB limit.', 'error')
+    flash('The upload exceeds the 64 MiB request limit.', 'error')
     return redirect(url_for('dashboard'))
 
 
