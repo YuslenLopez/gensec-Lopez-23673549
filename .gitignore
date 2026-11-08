@@ -4,3 +4,6 @@ env/
 .chromadb
 *.pyc
 __pycache__/
+/lab6.1/node_modules/
+/lab6.1/dist/
+/lab6.1/users.db

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Traceframe | Traffic analysis</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script defer src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark" aria-hidden="true">T<span></span></span><span>traceframe<small>TRAFFIC ANALYSIS</small></span></a>
+    <div class="header-right"><span class="status-dot"></span> LOCAL WORKSPACE <span class="header-divider"></span> <span>OFFLINE ANALYSIS</span></div>
+  </div>
+</header>
+<main class="workspace">
+  <div class="page-heading"><div><div class="eyebrow"><span>WORKSPACE</span> / ANALYSIS</div><h1>Traffic overview</h1><p>Inspect capture metadata and explore network activity.</p></div><div class="privacy-label"><span class="privacy-icon">&#9672;</span> Metadata only</div></div>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="notice {{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}
+  <section class="upload-strip" aria-label="Capture file">
+    <div class="upload-symbol" aria-hidden="true">&#8593;</div><div class="upload-copy"><strong>{{ analysis.filename if analysis else 'Start with a capture file' }}</strong><span>{{ 'Capture loaded and ready to explore' if analysis else 'PCAP or PCAPNG  /  Maximum 16 MB' }}</span></div>
+    <form class="upload-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label class="file-label" for="capture">Choose file</label><input id="capture" name="capture" type="file" accept=".pcap,.pcapng" required><span id="file-name" class="file-name">No file selected</span><button class="button primary" type="submit">Analyze capture <span aria-hidden="true">&#8599;</span></button>
+    </form>
+    {% if analysis %}<form action="{{ url_for('clear') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button" type="submit" title="Clear analysis" aria-label="Clear analysis">&#10005;</button></form>{% endif %}
+  </section>
+  {% if not analysis %}
+  <section class="welcome"><div class="welcome-art" aria-hidden="true"><div class="art-line line-one"></div><div class="art-line line-two"></div><div class="art-line line-three"></div><div class="art-cross">+</div></div><div class="welcome-content"><div class="eyebrow">YOUR ANALYSIS STARTS HERE</div><h2>A clearer view of your traffic.</h2><p>Load a capture to inspect its timeline, protocol mix, and packet-level metadata in one place.</p><div class="welcome-details"><span><b>01</b> Upload capture</span><span><b>02</b> Review activity</span><span><b>03</b> Refine results</span></div></div></section>
+  <div class="footnote"><span>PRIVATE BY DESIGN</span> Capture contents stay on this machine. Only metadata is retained during your session.</div>
+  {% else %}
+  <div class="section-heading"><div><div class="eyebrow">CAPTURE SUMMARY <span class="accent-slash">/</span> {{ 'FILTERED VIEW' if active_count else 'ALL TRAFFIC' }}</div><h2>At a glance</h2></div><span class="range-label">{% if summary.start %}{{ summary.start }} <span>to</span> {{ summary.end }} UTC{% else %}No timestamps available{% endif %}</span></div>
+  <section class="metrics" aria-label="Capture summary">
+    <div class="metric"><div class="metric-title">PACKETS <span>01</span></div><strong>{{ '{:,}'.format(summary.count) }}</strong><small>Packets in this view</small></div>
+    <div class="metric"><div class="metric-title">CAPTURED BYTES <span>02</span></div><strong>{{ '{:,}'.format(summary.bytes) }}</strong><small>Bytes present in capture</small></div>
+    <div class="metric"><div class="metric-title">SOURCE IPs <span>03</span></div><strong>{{ '{:,}'.format(summary.sources) }}</strong><small>Unique source addresses</small></div>
+    <div class="metric"><div class="metric-title">DESTINATION IPs <span>04</span></div><strong>{{ '{:,}'.format(summary.destinations) }}</strong><small>Unique destination addresses</small></div>
+  </section>
+  <section class="charts" aria-label="Traffic charts">
+    <div class="chart-panel"><div class="panel-heading"><div><div class="eyebrow">TRAFFIC PATTERN</div><h3>Volume over time</h3><p>Captured bytes grouped into time intervals, UTC.</p></div><span class="chart-tag">BYTES</span></div><div class="chart-wrap">{% if volume_chart %}<img src="{{ volume_chart }}" alt="Bar chart of captured bytes over time">{% else %}<div class="chart-empty">No traffic to display</div>{% endif %}</div></div>
+    <div class="chart-panel distribution"><div class="panel-heading"><div><div class="eyebrow">TRAFFIC COMPOSITION</div><h3>Protocol distribution</h3><p>Share of packets by protocol.</p></div></div><div class="distribution-inner"><div class="donut-wrap">{% if protocol_chart %}<img src="{{ protocol_chart }}" alt="Chart of packet protocol distribution">{% endif %}<div class="donut-center"><strong>{{ '{:,}'.format(summary.count) }}</strong><span>PACKETS</span></div></div><div class="legend">{% for protocol, count in summary.protocols.most_common() %}<div><span class="legend-color color-{{ loop.index0 % 6 }}"></span><span>{{ protocol }}</span><strong>{{ count }}</strong><small>{{ '%.0f'|format(100 * count / summary.count) }}%</small></div>{% else %}<span class="muted">No protocols to display</span>{% endfor %}</div></div></div>
+  </section>
+  <section class="explorer" id="explorer"><div class="section-heading explorer-heading"><div><div class="eyebrow">DETAILED INSPECTION</div><h2>Packet explorer</h2><p>Filter and search packet metadata. Times are UTC.</p></div><span class="result-count">{{ '{:,}'.format(summary.count) }} results</span></div>
+    <form class="filters" method="get" action="{{ url_for('dashboard') }}#explorer"><div class="filter-heading"><strong>Filters</strong><span>{{ active_count }} active</span><a href="{{ url_for('dashboard') }}#explorer">Clear filters</a></div><div class="filter-grid">
+      <label>Source IP<input name="source" value="{{ values.source }}" placeholder="e.g. 192.168.1.1"></label><label>Destination IP<input name="destination" value="{{ values.destination }}" placeholder="e.g. 10.0.0.1"></label><label>Either IP<input name="ip" value="{{ values.ip }}" placeholder="Any address"></label><label>Protocol<select name="protocol"><option value="">All protocols</option>{% for protocol in ['TCP', 'UDP', 'ICMP', 'ICMPv6', 'ARP', 'IPv4', 'IPv6', 'Other'] %}<option value="{{ protocol }}" {{ 'selected' if values.protocol == protocol }}>{{ protocol }}</option>{% endfor %}</select></label>
+      <label>Source port<input name="source_port" value="{{ values.source_port }}" type="number" min="0" max="65535" placeholder="Any port"></label><label>Destination port<input name="destination_port" value="{{ values.destination_port }}" type="number" min="0" max="65535" placeholder="Any port"></label><label>Start time (UTC)<input name="start" value="{{ values.start }}" type="datetime-local" step="1"></label><label>End time (UTC)<input name="end" value="{{ values.end }}" type="datetime-local" step="1"></label>
+    </div><div class="filter-actions"><label class="search-label"><span aria-hidden="true">&#9906;</span><input name="search" value="{{ values.search }}" placeholder="Search IP, port, or protocol" aria-label="Search packets"></label><button class="button primary" type="submit">Apply filters <span aria-hidden="true">&#8594;</span></button></div></form>
+    <div class="table-heading"><div><strong>Packet records</strong><span>Showing {{ packets|length }} of {{ '{:,}'.format(summary.count) }}</span></div><span>PAGE {{ page }} OF {{ pages }}</span></div>
+    <div class="table-scroll"><table><thead><tr><th>#</th>{% for label, field in [('TIMESTAMP (UTC)', 'timestamp'), ('SOURCE IP', 'source'), ('DESTINATION IP', 'destination'), ('PROTOCOL', 'protocol'), ('LENGTH', 'length')] %}<th><a href="{{ query_url(sort=field, direction='desc' if sort == field and direction == 'asc' else 'asc', page=1) }}#explorer">{{ label }} <span>{{ ('&#8593;'|safe if direction == 'asc' else '&#8595;'|safe) if sort == field else '&#8597;'|safe }}</span></a></th>{% endfor %}<th>SRC PORT</th><th>DST PORT</th></tr></thead><tbody>{% for packet in packets %}<tr><td class="number">{{ '%04d'|format(packet.number) }}</td><td class="mono">{{ packet.timestamp.replace('T', ' ').replace('+00:00', '') }}</td><td class="mono">{{ packet.source or '—' }}</td><td class="mono">{{ packet.destination or '—' }}</td><td><span class="protocol-badge">{{ packet.protocol }}</span></td><td class="mono">{{ packet.length }} B</td><td class="mono">{{ packet.source_port if packet.source_port is not none else '—' }}</td><td class="mono">{{ packet.destination_port if packet.destination_port is not none else '—' }}</td></tr>{% else %}<tr><td class="empty-table" colspan="8">{{ 'No packets match these filters.' if active_count else 'This capture contains no packets.' }}</td></tr>{% endfor %}</tbody></table></div>
+    <div class="pagination"><span>Showing page {{ page }} of {{ pages }}</span><div>{% if page > 1 %}<a href="{{ query_url(page=page-1) }}#explorer">&#8592; Previous</a>{% else %}<span class="disabled">&#8592; Previous</span>{% endif %}<span class="page-number">{{ page }}</span>{% if page < pages %}<a href="{{ query_url(page=page+1) }}#explorer">Next &#8594;</a>{% else %}<span class="disabled">Next &#8594;</span>{% endif %}</div></div>
+  </section>
+  {% endif %}
+  <footer><span>TRACEFRAME <span class="footer-divider">/</span> OFFLINE TRAFFIC ANALYSIS</span><span>METADATA ONLY <span class="status-dot"></span></span></footer>
+</main>
+</body>
+</html>

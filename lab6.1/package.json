@@ -1,0 +1,20 @@
+{
+  "name": "lab6-1-sqlite-users",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SQLite-backed user authentication with PBKDF2 password hashing",
+  "scripts": {
+    "test:js": "node --test --test-concurrency=1 users.test.js",
+    "build:ts": "tsc --project tsconfig.json",
+    "test:ts": "npm run build:ts && node --test --test-concurrency=1 dist/users.test.js",
+    "test": "npm run test:js && npm run test:ts"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "@types/sqlite3": "^3.1.11",
+    "typescript": "^5.9.3"
+  }
+}
